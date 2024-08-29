@@ -11,6 +11,7 @@ Importante: Estudar funcionamento do Gephi
 
 
 Caminho a ser seguido:
-- Transformar dataset em grafo
-- Criar representação visual usando o Gephi
-- Escrever relatório e mandar pra Henrique
+- Tratar os dados do dataset (Antonni)
+- Transformar dataset tratado em grafo com networkx (Junto)
+- Criar representação visual usando o Gephi (Gustavo)
+- Escrever relatório e mandar pra Henrique (Junto)

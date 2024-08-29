@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 from meu_grafo_matriz_adj_dir import *
 
 df = pd.read_csv("ListaContratos.csv",sep=';') # Disponível em: https://transparencia.pb.gov.br/compras/contratos
