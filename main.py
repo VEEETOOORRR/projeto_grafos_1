@@ -1,5 +1,6 @@
 import pandas as pd
-from meu_grafo_matriz_adj_dir import *
+import networkx as nx
+import matplotlib.pyplot as plt
 
 df = pd.read_csv("ListaContratos.csv",sep=';') # Disponível em: https://transparencia.pb.gov.br/compras/contratos
 
@@ -7,8 +8,26 @@ df = pd.read_csv("ListaContratos.csv",sep=';') # Disponível em: https://transpa
 
 #print(df['CtNumero'])
 
-teste = MeuGrafo()
+df_tratado = df[['OrNome','Credor','ObNome','CtValorTotal']]
 
-for i in range(2, len(df)+1):
-    if not teste.existe_vertice("Teste"):
+df_tratado.loc[:,'CtValorTotal'] = df_tratado['CtValorTotal'].str.replace('.','', regex=False)
+df_tratado.loc[:,'CtValorTotal'] = df_tratado['CtValorTotal'].str.replace(',','.', regex=False)
+df_tratado.loc[:,'CtValorTotal'] = df_tratado['CtValorTotal'].astype(float)
+
+#print(df_tratado['CtValorTotal'].head())
+
+
+def exportaGrafo(df):
+    grafo = nx.Graph()
+    for index, row in df.iterrows():
         
+        grafo.add_edge(row['OrNome'], row['Credor'])
+        grafo.add_edge(row['Credor'], '('+ row['Credor'] + ') ' + row['ObNome'])
+        grafo.add_edge("Governo Estadual", row['OrNome'])
+
+    #nx.draw(grafo,node_color="red",node_size=20)
+    #plt.show()
+    nx.write_graphml(grafo, "meu_grafo.graphml")
+
+exportaGrafo(df_tratado.head(100))
+
