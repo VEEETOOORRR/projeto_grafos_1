@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 import unidecode  # Para remover acentos e padronizar
+import re
 
 # Carregar o arquivo CSV
 df = pd.read_csv("ListaContratos.csv", sep=';')
@@ -15,6 +16,15 @@ df_tratado.loc[:, 'CtValorTotal'] = df_tratado['CtValorTotal'].str.replace(',', 
 df_tratado = df_tratado.replace({np.nan: 0.01})
 df_tratado.loc[:, 'CtValorTotal'] = df_tratado['CtValorTotal'].astype(float)
 
+# Função para extrair CNPJ/CPF do nome da empresa e limpar o nome
+def extrair_cnpj(nome):
+    match = re.match(r'(\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}|\d{3}\.\d{3}\.\d{3}-\d{2})', nome)
+    return match.group(0) if match else None
+
+# Adicionar uma nova coluna 'CNPJ_CPF' ao DataFrame e limpar a coluna 'Credor'
+df_tratado['CNPJ_CPF'] = df_tratado['Credor'].apply(extrair_cnpj)
+df_tratado['Credor'] = df_tratado['Credor'].str.replace(r'\s*\-\s*.*', '', regex=True).str.strip()  # Remove o CNPJ/CPF do nome
+
 # Padronizando a coluna 'Credor' para eliminar duplicatas causadas por diferenças de acentuação e maiúsculas/minúsculas
 df_tratado['Credor'] = df_tratado['Credor'].apply(lambda x: unidecode.unidecode(str(x).strip()).upper())
 
@@ -27,7 +37,6 @@ def exportaGrafo(df):
         grafo.add_edge("Governo Estadual", row['OrNome'])
 
     nx.write_graphml(grafo, "meu_grafo.graphml")
-
 
 # Função para criar o grafo pesado (com pesos)
 def criaGrafoPesado(df):
@@ -66,7 +75,6 @@ def criaGrafoPesado(df):
 
     return grafo
 
-
 # Função para analisar a centralidade das empresas
 def analiseDados(g):
     # Calcula a centralidade de grau para todos os nós no grafo
@@ -84,22 +92,19 @@ def analiseDados(g):
     # Retorna o dicionário de centralidade das empresas, ordenado em ordem decrescente
     return dict(sorted(centralidade_empresas.items(), key=lambda item: item[1], reverse=True))
 
-
 # Função para calcular o grau de entrada das empresas
 def grauEntradaEmpresas(grafo, df):
     grau_entrada = {}
-
-    # Remover duplicatas no dataframe para evitar contagens duplicadas
-    df_unique = df[['OrNome', 'Credor']].drop_duplicates()
-
+    
     # Iterar sobre as empresas no dataframe
-    for empresa in df_unique['Credor'].unique():
-        if empresa in grafo:
-            # Pega o grau de entrada do vértice da empresa
-            grau_entrada[empresa] = grafo.in_degree(empresa)
+    for index, row in df.iterrows():
+        empresa = row['Credor']
+        # Pega o grau de entrada do vértice da empresa
+        grau = grafo.in_degree(empresa)
+        # Atualiza o grau de entrada
+        grau_entrada[empresa] = grau
     
     return grau_entrada
-
 
 # Criar o grafo pesado
 grafo_pesado = criaGrafoPesado(df_tratado)
@@ -110,14 +115,13 @@ grau_empresas = grauEntradaEmpresas(grafo_pesado, df_tratado)
 # Ordenar o dicionário em ordem decrescente de grau de entrada
 grau_empresas_ordenado = dict(sorted(grau_empresas.items(), key=lambda item: item[1], reverse=False))
 
-# Exibir os resultados do grau de entrada
+# Exibir os resultados
 for empresa, grau in grau_empresas_ordenado.items():
     print(f"Empresa: {empresa}, Grau de Entrada: {grau}")
 
-
 # Exemplo de uso para análise de centralidade
-resultado_centralidade = analiseDados(grafo_pesado)
+#resultado_centralidade = analiseDados(grafo_pesado)
 
 # Exibir os resultados da centralidade
-#for empresa, centralidade in resultado_centralidade.items():
+# for empresa, centralidade in resultado_centralidade.items():
 #    print(f"Empresa: {empresa}, Centralidade: {centralidade}")
