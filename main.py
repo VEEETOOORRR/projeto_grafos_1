@@ -62,8 +62,8 @@ def exportaGrafoPesado(df):
         else:
             total_secretaria[secretaria] = valor
 
-    for secretaria, valor_total in total_secretaria.items():
-        grafo.add_edge('governo estadual', secretaria, weight=valor_total)
+    #for secretaria, valor_total in total_secretaria.items():
+    #    grafo.add_edge('governo estadual', secretaria, weight=valor_total)
 
         '''grafo.add_edge(row['OrNome'], row['Credor'])
         grafo.add_edge(row['Credor'], '('+ row['Credor'] + ') ' + row['ObNome'])
