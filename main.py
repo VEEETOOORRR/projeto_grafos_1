@@ -12,24 +12,6 @@ def separar_cnpj_nome(credor):
         return pd.Series([cnpj_cpf, nome_empresa])
     return pd.Series([None, credor])
 
-df = pd.read_csv("ListaContratos.csv", sep=';')
-
-df_tratado = df[['OrNome', 'Credor', 'ObNome', 'CtValorTotal']]
-
-df_tratado.loc[:, 'CtValorTotal'] = df_tratado['CtValorTotal'].str.replace('.', '', regex=False)
-df_tratado.loc[:, 'CtValorTotal'] = df_tratado['CtValorTotal'].str.replace(',', '.', regex=False)
-df_tratado = df_tratado.replace({np.nan: 0.01})
-df_tratado.loc[:, 'CtValorTotal'] = df_tratado['CtValorTotal'].astype(float)
-
-
-df_tratado[['CNPJ_CPF', 'Nome_Empresa']] = df_tratado['Credor'].apply(separar_cnpj_nome)
-
-df_tratado = df_tratado.drop(columns=['Credor'])
-
-df_tratado['Nome_Empresa'] = df_tratado['Nome_Empresa'].apply(lambda x: unidecode.unidecode(str(x).strip()).upper())
-
-nomes_empresas = {}
-
 def criaGrafoPesado(df):
     grafo = nx.DiGraph()
     total_secretaria = {}
@@ -83,6 +65,24 @@ def grauEntradaEmpresas(grafo):
         }
     grau_entrada = dict(sorted(grau_entrada.items(), key=lambda item: item[1]['grau'], reverse=False))
     return grau_entrada
+
+df = pd.read_csv("ListaContratos.csv", sep=';')
+
+df_tratado = df[['OrNome', 'Credor', 'ObNome', 'CtValorTotal']]
+
+df_tratado.loc[:, 'CtValorTotal'] = df_tratado['CtValorTotal'].str.replace('.', '', regex=False)
+df_tratado.loc[:, 'CtValorTotal'] = df_tratado['CtValorTotal'].str.replace(',', '.', regex=False)
+df_tratado = df_tratado.replace({np.nan: 0.01})
+df_tratado.loc[:, 'CtValorTotal'] = df_tratado['CtValorTotal'].astype(float)
+
+
+df_tratado[['CNPJ_CPF', 'Nome_Empresa']] = df_tratado['Credor'].apply(separar_cnpj_nome)
+
+df_tratado = df_tratado.drop(columns=['Credor'])
+
+df_tratado['Nome_Empresa'] = df_tratado['Nome_Empresa'].apply(lambda x: unidecode.unidecode(str(x).strip()).upper())
+
+nomes_empresas = {}
 
 grafo_pesado = criaGrafoPesado(df_tratado)
 
